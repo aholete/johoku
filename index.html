@@ -6,22 +6,7 @@
 <title>常北ファーム</title>
 <style>
   body { font-family: sans-serif; margin: 0; background: #fafafa; }
-  header { 
-    background: #222; 
-    color: white; 
-    padding: 10px; 
-    text-align: center; 
-    cursor: pointer; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    gap: 10px;
-  }
-  header img {
-    height: 40px;
-    width: 40px;
-    border-radius: 8px;
-  }
+  header { background: #222; color: white; padding: 10px; text-align: center; cursor: pointer; } /* ← クリック可能に */
   nav { display: flex; justify-content: space-around; background: #444; }
   nav button { flex: 1; padding: 10px; border: none; color: white; background: #444; cursor: pointer; }
   nav button.active { background: #666; }
@@ -34,8 +19,7 @@
 </style>
 </head>
 <body>
-<header onclick="openListTab()">
-  <img src="IMG_0946.PNG" alt="常北ファームロゴ">
+<header onclick="openListTab()"> <!-- ← ヘッダークリックで昆虫リストに戻る -->
   <h1>常北ファーム</h1>
 </header>
 <nav>
@@ -68,6 +52,7 @@
 </section>
 
 <script>
+// --- データ構造 ---
 const fields = [
   "産地", "累代", "孵化", "1本目", "2本目", "3本目",
   "羽化", "休眠期間", "ペアリング1", "ペアリング2", "ペアリング3",
@@ -76,8 +61,10 @@ const fields = [
 let insects = JSON.parse(localStorage.getItem("insects") || "[]");
 let currentIndex = null;
 
+// --- 初期表示 ---
 renderList();
 
+// --- 昆虫リスト表示 ---
 function renderList() {
   const list = document.getElementById("insectList");
   list.innerHTML = "";
@@ -90,6 +77,7 @@ function renderList() {
   });
 }
 
+// --- 昆虫追加 ---
 function addInsect() {
   const name = prompt("昆虫の名前を入力:");
   if (!name) return;
@@ -99,6 +87,7 @@ function addInsect() {
   openMemo(insects.length - 1);
 }
 
+// --- メモ開く ---
 function openMemo(index) {
   currentIndex = index;
   const insect = insects[index];
@@ -119,6 +108,7 @@ function openMemo(index) {
   });
 }
 
+// --- メモ保存 ---
 function saveMemo() {
   const inputs = document.querySelectorAll("#memoFields input, #memoFields textarea");
   const memo = {};
@@ -128,6 +118,7 @@ function saveMemo() {
   backToList();
 }
 
+// --- 戻る ---
 function backToList() {
   document.getElementById("insectList").style.display = "block";
   document.getElementById("addButton").style.display = "inline-block";
@@ -135,10 +126,12 @@ function backToList() {
   renderList();
 }
 
+// --- ローカル保存 ---
 function saveInsects() {
   localStorage.setItem("insects", JSON.stringify(insects));
 }
 
+// --- タブ切替 ---
 document.querySelectorAll(".tab").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
@@ -159,11 +152,13 @@ document.querySelectorAll(".tab").forEach(btn => {
   });
 });
 
+// ✅ ヘッダー「常北ファーム」クリックで昆虫リストに戻る
 function openListTab() {
   document.querySelector('[data-target="list"]').click();
 }
 </script>
 </body>
 </html>
+
 
 
