@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>昆虫カルテ Web版</title>
+<title>常北ファーム</title>
 <style>
   body { font-family: sans-serif; margin: 0; background: #fafafa; }
   header { background: #222; color: white; padding: 10px; text-align: center; }
@@ -20,7 +20,7 @@
 </head>
 <body>
 <header>
-  <h1>昆虫カルテ</h1>
+  <h1>常北ファーム</h1>
 </header>
 <nav>
   <button class="tab active" data-target="list">昆虫リスト</button>
@@ -83,6 +83,9 @@ function addInsect() {
   insects.push({ name, memo: {} });
   saveInsects();
   renderList();
+
+  // 新規昆虫追加後、その昆虫のメモフォームを開く
+  openMemo(insects.length - 1);
 }
 
 // --- メモ開く ---
@@ -137,9 +140,15 @@ document.querySelectorAll(".tab").forEach(btn => {
     const target = btn.dataset.target;
     document.getElementById(target).classList.add("active");
 
-    // ✅ 管理者タブを開いたときにXを自動で開く
+    // ✅ 管理者タブ：Xを自動で開く
     if (target === "admin") {
       window.open("https://x.com/zebradovelab", "_blank");
+    }
+
+    // ✅ 昆虫リストタブ：リストに戻す
+    if (target === "list") {
+      document.getElementById("insectList").style.display = "block";
+      document.querySelector("#memoForm").style.display = "none";
     }
   });
 });
