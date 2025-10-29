@@ -6,7 +6,7 @@
 <title>常北ファーム</title>
 <style>
   body { font-family: sans-serif; margin: 0; background: #fafafa; }
-  header { background: #222; color: white; padding: 10px; text-align: center; cursor: pointer; }
+  header { background: #222; color: white; padding: 10px; text-align: center; cursor: pointer; } /* ← クリック可能に */
   nav { display: flex; justify-content: space-around; background: #444; }
   nav button { flex: 1; padding: 10px; border: none; color: white; background: #444; cursor: pointer; }
   nav button.active { background: #666; }
@@ -16,11 +16,10 @@
   textarea { height: 120px; }
   .list-item { padding: 8px; border-bottom: 1px solid #ccc; cursor: pointer; }
   .list-item:hover { background: #eee; }
-  iframe { width: 100%; height: 80vh; border: none; }
 </style>
 </head>
 <body>
-<header onclick="openListTab()">
+<header onclick="openListTab()"> <!-- ← ヘッダークリックで昆虫リストに戻る -->
   <h1>常北ファーム</h1>
 </header>
 <nav>
@@ -32,6 +31,7 @@
 <section id="list" class="active">
   <h2>昆虫リスト</h2>
   <div id="insectList"></div>
+
   <button id="addButton" onclick="addInsect()">＋ 新しい昆虫を追加</button>
 
   <div id="memoForm" style="display:none;">
@@ -43,14 +43,16 @@
 </section>
 
 <section id="farm">
-  <iframe src="https://planet-studios-syros.com"></iframe>
+  <iframe src="https://planet-studios-syros.com" style="width:100%; height:80vh; border:none;"></iframe>
 </section>
 
 <section id="admin">
-  <iframe id="xFrame" src=""></iframe>
+  <p>管理者のページを開いています...</p>
+  <p><a href="https://x.com/zebradovelab" target="_blank">X（旧Twitter）を開く</a></p>
 </section>
 
 <script>
+// --- データ構造 ---
 const fields = [
   "産地", "累代", "孵化", "1本目", "2本目", "3本目",
   "羽化", "休眠期間", "ペアリング1", "ペアリング2", "ペアリング3",
@@ -59,8 +61,10 @@ const fields = [
 let insects = JSON.parse(localStorage.getItem("insects") || "[]");
 let currentIndex = null;
 
+// --- 初期表示 ---
 renderList();
 
+// --- 昆虫リスト表示 ---
 function renderList() {
   const list = document.getElementById("insectList");
   list.innerHTML = "";
@@ -73,6 +77,7 @@ function renderList() {
   });
 }
 
+// --- 昆虫追加 ---
 function addInsect() {
   const name = prompt("昆虫の名前を入力:");
   if (!name) return;
@@ -82,6 +87,7 @@ function addInsect() {
   openMemo(insects.length - 1);
 }
 
+// --- メモ開く ---
 function openMemo(index) {
   currentIndex = index;
   const insect = insects[index];
@@ -102,6 +108,7 @@ function openMemo(index) {
   });
 }
 
+// --- メモ保存 ---
 function saveMemo() {
   const inputs = document.querySelectorAll("#memoFields input, #memoFields textarea");
   const memo = {};
@@ -111,6 +118,7 @@ function saveMemo() {
   backToList();
 }
 
+// --- 戻る ---
 function backToList() {
   document.getElementById("insectList").style.display = "block";
   document.getElementById("addButton").style.display = "inline-block";
@@ -118,10 +126,12 @@ function backToList() {
   renderList();
 }
 
+// --- ローカル保存 ---
 function saveInsects() {
   localStorage.setItem("insects", JSON.stringify(insects));
 }
 
+// --- タブ切替 ---
 document.querySelectorAll(".tab").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
@@ -131,7 +141,7 @@ document.querySelectorAll(".tab").forEach(btn => {
     document.getElementById(target).classList.add("active");
 
     if (target === "admin") {
-      document.getElementById("xFrame").src = "https://x.com/zebradovelab"; // ← Xをiframe内で開く
+      window.open("https://x.com/zebradovelab", "_blank");
     }
 
     if (target === "list") {
@@ -142,12 +152,12 @@ document.querySelectorAll(".tab").forEach(btn => {
   });
 });
 
+// ✅ ヘッダー「常北ファーム」クリックで昆虫リストに戻る
 function openListTab() {
   document.querySelector('[data-target="list"]').click();
 }
 </script>
 </body>
 </html>
-
 
 
