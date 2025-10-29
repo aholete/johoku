@@ -3,137 +3,161 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>昆虫観察ノート</title>
+<title>常北ファーム</title>
 <style>
-body {
-  font-family: "Yu Gothic", sans-serif;
-  text-align: center;
-  margin: 0;
-  background: #f5f5f5;
-}
-header {
-  background-color: #4caf50;
-  color: white;
-  padding: 10px 0;
-  font-size: 1.2em;
-}
-.tab-container {
-  display: flex;
-  background-color: #ddd;
-}
-.tab {
-  flex: 1;
-  padding: 10px;
-  cursor: pointer;
-  background-color: #ccc;
-  border-right: 1px solid #aaa;
-}
-.tab.active {
-  background-color: white;
-  font-weight: bold;
-}
-.content {
-  display: none;
-  padding: 20px;
-}
-.content.active {
-  display: block;
-  background: white;
-}
-button {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  font-size: 1em;
-  border-radius: 5px;
-  cursor: pointer;
-}
-button:hover {
-  background-color: #45a049;
-}
-.insect-list {
-  list-style-type: none;
-  padding: 0;
-}
-.insect-list li {
-  padding: 8px;
-  border-bottom: 1px solid #ccc;
-}
+  body { font-family: sans-serif; margin: 0; background: #fafafa; }
+  header { background: #222; color: white; padding: 10px; text-align: center; }
+  nav { display: flex; justify-content: space-around; background: #444; }
+  nav button { flex: 1; padding: 10px; border: none; color: white; background: #444; cursor: pointer; }
+  nav button.active { background: #666; }
+  section { display: none; padding: 15px; }
+  section.active { display: block; }
+  input, textarea { width: 100%; margin: 5px 0; padding: 8px; }
+  textarea { height: 120px; }
+  .list-item { padding: 8px; border-bottom: 1px solid #ccc; cursor: pointer; }
+  .list-item:hover { background: #eee; }
 </style>
 </head>
 <body>
+<header>
+  <h1>常北ファーム</h1>
+</header>
+<nav>
+  <button class="tab active" data-target="list">昆虫リスト</button>
+  <button class="tab" data-target="farm">常北ファーム</button>
+  <button class="tab" data-target="admin">管理者</button>
+</nav>
 
-<header>昆虫観察ノート</header>
-
-<div class="tab-container">
-  <div class="tab active" onclick="openTab('home')">ホーム</div>
-  <div class="tab" onclick="openTab('insects')">昆虫リスト</div>
-  <div class="tab" onclick="openTab('x')">X（旧Twitter）</div>
-</div>
-
-<div id="home" class="content active">
-  <h2>ようこそ！</h2>
-  <p>観察した昆虫を記録しましょう。</p>
-</div>
-
-<div id="insects" class="content">
+<section id="list" class="active">
   <h2>昆虫リスト</h2>
-  <ul id="insectList" class="insect-list"></ul>
-  <button id="addButton" onclick="showAddForm()">＋ 新しい昆虫を追加</button>
+  <div id="insectList"></div>
 
-  <div id="addForm" style="display:none; margin-top:20px;">
-    <h3>新しい昆虫を追加</h3>
-    <input type="text" id="newInsectName" placeholder="昆虫の名前を入力">
-    <br><br>
-    <button onclick="addInsect()">追加</button>
-    <button onclick="cancelAdd()">戻る</button>
+  <!-- ✅ 編集画面では非表示にする対象 -->
+  <button id="addButton" onclick="addInsect()">＋ 新しい昆虫を追加</button>
+
+  <div id="memoForm" style="display:none;">
+    <h3 id="memoTitle"></h3>
+    <form id="memoFields"></form>
+    <button type="button" onclick="saveMemo()">保存</button>
+    <button type="button" onclick="backToList()">戻る</button>
   </div>
-</div>
+</section>
 
-<div id="x" class="content">
-  <h2>X（旧Twitter）</h2>
-  <p>Xのページが自動で開きます...</p>
-</div>
+<section id="farm">
+  <iframe src="https://planet-studios-syros.com" style="width:100%; height:80vh; border:none;"></iframe>
+</section>
+
+<section id="admin">
+  <p>管理者のページを開いています...</p>
+  <p><a href="https://x.com/zebradovelab" target="_blank">X（旧Twitter）を開く</a></p>
+</section>
 
 <script>
-function openTab(tabName) {
-  const tabs = document.getElementsByClassName("tab");
-  const contents = document.getElementsByClassName("content");
-  for (let i = 0; i < tabs.length; i++) tabs[i].classList.remove("active");
-  for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
+// --- データ構造 ---
+const fields = [
+  "産地", "累代", "孵化", "1本目", "2本目", "3本目",
+  "羽化", "休眠期間", "ペアリング1", "ペアリング2", "ペアリング3",
+  "割出し1", "割出し2", "割出し3", "メモ"
+];
+let insects = JSON.parse(localStorage.getItem("insects") || "[]");
+let currentIndex = null;
 
-  document.getElementById(tabName).classList.add("active");
-  document.querySelector(`.tab[onclick="openTab('${tabName}')"]`).classList.add("active");
+// --- 初期表示 ---
+renderList();
 
-  // Xタブが開かれたら自動で新しいタブで開く
-  if (tabName === "x") {
-    window.open("https://x.com/", "_blank");
-  }
+// --- 昆虫リスト表示 ---
+function renderList() {
+  const list = document.getElementById("insectList");
+  list.innerHTML = "";
+  insects.forEach((insect, i) => {
+    const div = document.createElement("div");
+    div.className = "list-item";
+    div.textContent = `${i + 1}. ${insect.name} - ${insect.memo["産地"] || ""}`;
+    div.onclick = () => openMemo(i);
+    list.appendChild(div);
+  });
 }
 
-function showAddForm() {
-  document.getElementById("addForm").style.display = "block";
-  document.getElementById("addButton").style.display = "none"; // ← ボタンを隠す
-}
-
-function cancelAdd() {
-  document.getElementById("addForm").style.display = "none";
-  document.getElementById("addButton").style.display = "inline-block"; // ← 元に戻す
-}
-
+// --- 昆虫追加 ---
 function addInsect() {
-  const name = document.getElementById("newInsectName").value.trim();
-  if (name !== "") {
-    const li = document.createElement("li");
-    li.textContent = name;
-    document.getElementById("insectList").appendChild(li);
-    document.getElementById("newInsectName").value = "";
-  }
-  cancelAdd();
-}
-</script>
+  const name = prompt("昆虫の名前を入力:");
+  if (!name) return;
+  insects.push({ name, memo: {} });
+  saveInsects();
+  renderList();
 
+  // 新規昆虫追加後、その昆虫のメモフォームを開く
+  openMemo(insects.length - 1);
+}
+
+// --- メモ開く ---
+function openMemo(index) {
+  currentIndex = index;
+  const insect = insects[index];
+  document.getElementById("insectList").style.display = "none";
+  document.getElementById("addButton").style.display = "none"; // ✅ 編集中は「＋追加」非表示
+  document.querySelector("#memoForm").style.display = "block";
+  document.querySelector("#memoTitle").textContent = `${index + 1}. ${insect.name}`;
+
+  const form = document.getElementById("memoFields");
+  form.innerHTML = "";
+  fields.forEach(f => {
+    const label = document.createElement("label");
+    label.textContent = f;
+    const input = f === "メモ" ? document.createElement("textarea") : document.createElement("input");
+    input.value = insect.memo[f] || "";
+    input.dataset.field = f;
+    form.appendChild(label);
+    form.appendChild(input);
+  });
+}
+
+// --- メモ保存 ---
+function saveMemo() {
+  const inputs = document.querySelectorAll("#memoFields input, #memoFields textarea");
+  const memo = {};
+  inputs.forEach(el => { memo[el.dataset.field] = el.value; });
+  insects[currentIndex].memo = memo;
+  saveInsects();
+  backToList();
+}
+
+// --- 戻る ---
+function backToList() {
+  document.getElementById("insectList").style.display = "block";
+  document.getElementById("addButton").style.display = "inline-block"; // ✅ 戻ると再表示
+  document.querySelector("#memoForm").style.display = "none";
+  renderList();
+}
+
+// --- ローカル保存 ---
+function saveInsects() {
+  localStorage.setItem("insects", JSON.stringify(insects));
+}
+
+// --- タブ切替 ---
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+    btn.classList.add("active");
+    const target = btn.dataset.target;
+    document.getElementById(target).classList.add("active");
+
+    // ✅ 管理者タブ：Xを自動で開く
+    if (target === "admin") {
+      window.open("https://x.com/zebradovelab", "_blank");
+    }
+
+    // ✅ 昆虫リストタブ：リストに戻す
+    if (target === "list") {
+      document.getElementById("insectList").style.display = "block";
+      document.getElementById("addButton").style.display = "inline-block"; // ✅ 再表示
+      document.querySelector("#memoForm").style.display = "none";
+    }
+  });
+});
+</script>
 </body>
 </html>
 
