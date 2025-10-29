@@ -6,7 +6,7 @@
 <title>常北ファーム</title>
 <style>
   body { font-family: sans-serif; margin: 0; background: #fafafa; }
-  header { background: #222; color: white; padding: 10px; text-align: center; }
+  header { background: #222; color: white; padding: 10px; text-align: center; cursor: pointer; } /* ← クリック可能に */
   nav { display: flex; justify-content: space-around; background: #444; }
   nav button { flex: 1; padding: 10px; border: none; color: white; background: #444; cursor: pointer; }
   nav button.active { background: #666; }
@@ -19,7 +19,7 @@
 </style>
 </head>
 <body>
-<header>
+<header onclick="openListTab()"> <!-- ← ヘッダークリックで昆虫リストに戻る -->
   <h1>常北ファーム</h1>
 </header>
 <nav>
@@ -32,7 +32,6 @@
   <h2>昆虫リスト</h2>
   <div id="insectList"></div>
 
-  <!-- ✅ 編集画面では非表示にする対象 -->
   <button id="addButton" onclick="addInsect()">＋ 新しい昆虫を追加</button>
 
   <div id="memoForm" style="display:none;">
@@ -85,8 +84,6 @@ function addInsect() {
   insects.push({ name, memo: {} });
   saveInsects();
   renderList();
-
-  // 新規昆虫追加後、その昆虫のメモフォームを開く
   openMemo(insects.length - 1);
 }
 
@@ -95,10 +92,9 @@ function openMemo(index) {
   currentIndex = index;
   const insect = insects[index];
   document.getElementById("insectList").style.display = "none";
-  document.getElementById("addButton").style.display = "none"; // ✅ 編集中は「＋追加」非表示
+  document.getElementById("addButton").style.display = "none";
   document.querySelector("#memoForm").style.display = "block";
   document.querySelector("#memoTitle").textContent = `${index + 1}. ${insect.name}`;
-
   const form = document.getElementById("memoFields");
   form.innerHTML = "";
   fields.forEach(f => {
@@ -125,7 +121,7 @@ function saveMemo() {
 // --- 戻る ---
 function backToList() {
   document.getElementById("insectList").style.display = "block";
-  document.getElementById("addButton").style.display = "inline-block"; // ✅ 戻ると再表示
+  document.getElementById("addButton").style.display = "inline-block";
   document.querySelector("#memoForm").style.display = "none";
   renderList();
 }
@@ -144,21 +140,23 @@ document.querySelectorAll(".tab").forEach(btn => {
     const target = btn.dataset.target;
     document.getElementById(target).classList.add("active");
 
-    // ✅ 管理者タブ：Xを自動で開く
     if (target === "admin") {
       window.open("https://x.com/zebradovelab", "_blank");
     }
 
-    // ✅ 昆虫リストタブ：リストに戻す
     if (target === "list") {
       document.getElementById("insectList").style.display = "block";
-      document.getElementById("addButton").style.display = "inline-block"; // ✅ 再表示
+      document.getElementById("addButton").style.display = "inline-block";
       document.querySelector("#memoForm").style.display = "none";
     }
   });
 });
+
+// ✅ ヘッダー「常北ファーム」クリックで昆虫リストに戻る
+function openListTab() {
+  document.querySelector('[data-target="list"]').click();
+}
 </script>
 </body>
 </html>
-
 
